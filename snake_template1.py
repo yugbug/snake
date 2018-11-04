@@ -3,21 +3,32 @@ import pygame
 
 
 class Player:
-    x = 10
-    y = 10
-    speed = 1
+    x = 0
+    y = 0
+    speed = 32
+    direction = 0
+
+    def update(self):
+        if self.direction == 0:
+            self.x = self.x + self.speed
+        if self.direction == 1:
+            self.x = self.x - self.speed
+        if self.direction == 2:
+            self.y = self.y - self.speed
+        if self.direction == 3:
+            self.y = self.y + self.speed
 
     def moveRight(self):
-        self.x = self.x + self.speed
+        self.direction = 0
 
     def moveLeft(self):
-        self.x = self.x - self.speed
+        self.direction = 1
 
     def moveUp(self):
-        self.y = self.y - self.speed
+        self.direction = 2
 
     def moveDown(self):
-        self.y = self.y + self.speed
+        self.direction = 3
 
 
 guy_the_slow_player = Player()
