@@ -1,37 +1,43 @@
-import random
 from pygame.locals import *
+from random import randint
 import pygame
 import time
 
+ate = 0
 
 class Apple:
     x = 0
     y = 0
     step = 44
 
+
     def __init__(self, x, y):
-        self.x = x
-        self.y = y
+        self.x = x * self.step
+        self.y = y * self.step
 
     def draw(self, surface, image):
         surface.blit(image, (self.x, self.y))
 
 
 class Player:
-    x = []
-    y = []
+    x = [0]
+    y = [0]
     step = 44
     direction = 0
-    length = 1
+    length = 3
 
     updateCountMax = 2
     updateCount = 0
 
     def __init__(self, length):
         self.length = length
-        for i in range(0, length):
-            self.x.append(0)
-            self.y.append(0)
+        for i in range(0, 2000):
+            self.x.append(-100)
+            self.y.append(-100)
+
+        # initial positions, no collision.
+        self.x[1] = 1 * self.step
+        self.x[2] = 2 * self.step
 
     def update(self):
 
@@ -40,8 +46,6 @@ class Player:
 
             # update previous positions
             for i in range(self.length - 1, 0, -1):
-                print
-                "self.x[" + str(i) + "] = self.x[" + str(i - 1) + "]"
                 self.x[i] = self.x[i - 1]
                 self.y[i] = self.y[i - 1]
 
@@ -69,7 +73,6 @@ class Player:
         if self.direction != 3:
             self.direction = 2
 
-
     def moveDown(self):
         if self.direction != 2:
             self.direction = 3
@@ -79,19 +82,29 @@ class Player:
             surface.blit(image, (self.x[i], self.y[i]))
 
 
+class Game:
+    def isCollision(self, x1, y1, x2, y2, bsize):
+        if x1 >= x2 and x1 <= x2 + bsize:
+            if y1 >= y2 and y1 <= y2 + bsize:
+                return True
+        return False
+
+
 class App:
-    windowWidth = 800
+    windowWidth = 600
     windowHeight = 600
     player = 0
     apple = 0
+
 
     def __init__(self):
         self._running = True
         self._display_surf = None
         self._image_surf = None
         self._apple_surf = None
-        self.player = Player(10)
-        self.apple = Apple(0, 30)  # random.randint (0,1)  )
+        self.game = Game()
+        self.player = Player(3)
+        self.apple = Apple(5, 5)
 
     def on_init(self):
         pygame.init()
@@ -100,9 +113,9 @@ class App:
         pygame.display.set_caption('Pygame pythonspot.com example')
         self._running = True
         self._image_surf = pygame.image.load("photos/block.png").convert()
-        self._image_surf = pygame.transform.scale(self._image_surf, (40, 30))
+        self._image_surf = pygame.transform.scale(self._image_surf, (44, 44))
         self._apple_surf = pygame.image.load("photos/apple2.jpeg").convert()
-        self._apple_surf = pygame.transform.scale(self._apple_surf, (40, 30))
+        self._apple_surf = pygame.transform.scale(self._apple_surf, (44, 44))
 
     def on_event(self, event):
         if event.type == QUIT:
@@ -110,6 +123,27 @@ class App:
 
     def on_loop(self):
         self.player.update()
+        var = ate = 0
+
+        # does snake eat apple?
+        for i in range(0, self.player.length):
+            if self.game.isCollision(self.apple.x, self.apple.y, self.player.x[i], self.player.y[i], self.apple.step):
+                print("You ate an apple and grew!")
+                print("x[0] (" + str(self.player.x[0]) + "," + str(self.player.y[0]) + ")")
+                print("x[" + str(i) + "] (" + str(self.player.x[i]) + "," + str(self.player.y[i]) + ")")  # todo
+                self.apple.x = randint(2, 9) * self.apple.step
+                self.apple.y = randint(2, 9) * self.apple.step
+                self.player.length = self.player.length + 1
+
+        # does snake collide with itself?
+        for i in range(2, self.player.length):
+            if self.game.isCollision(self.player.x[0], self.player.y[0], self.player.x[i], self.player.y[i], 40):
+                numate = self.player.length - 3
+                print("You lose! You ate " + str(numate) + " apple(s) in total! Collision: ")
+                print("x[0] (" + str(self.player.x[0]) + "," + str(self.player.y[0]) + ")")
+                print("x[" + str(i) + "] (" + str(self.player.x[i]) + "," + str(self.player.y[i]) + ")")
+                exit(0)
+
         pass
 
     def on_render(self):
@@ -143,10 +177,11 @@ class App:
 
             if (keys[K_ESCAPE]):
                 self._running = False
+
             self.on_loop()
             self.on_render()
 
-            time.sleep(50.0 / 1000.0);
+            time.sleep(35.0 / 1000.0);
         self.on_cleanup()
 
 
